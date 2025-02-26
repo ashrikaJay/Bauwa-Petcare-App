@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "443662973429",
+    "project_id": "bauwa-petcare",
+    "storage_bucket": "bauwa-petcare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443662973429:android:1b7de44f41478b0b16c8bc",
+        "android_client_info": {
+          "package_name": "com.android.application"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443662973429-e6c8d37gt1nejmtpukbq0t4j08ktnahv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.android.application",
+            "certificate_hash": "728a3763bc7538065eb94f348fae1a35ff745f1b"
+          }
+        },
+        {
+          "client_id": "443662973429-uke1nso39gno53vhbuaifiqdtr9sqqgu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "***REMOVED***SyAFYB72ekCTBC29NCgbPUp-OBtJt5Lj8Pc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443662973429-uke1nso39gno53vhbuaifiqdtr9sqqgu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "443662973429-omiucflorjbdankbrgvnn9uihni683ln.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bauwa"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443662973429:android:5e1ce3229799849a16c8bc",
+        "android_client_info": {
+          "package_name": "com.example.bauwa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "443662973429-vn7mdd561djsn8ce3n6trtc0f37n3m3v.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.bauwa",
+            "certificate_hash": "728a3763bc7538065eb94f348fae1a35ff745f1b"
+          }
+        },
+        {
+          "client_id": "443662973429-uke1nso39gno53vhbuaifiqdtr9sqqgu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "***REMOVED***SyAFYB72ekCTBC29NCgbPUp-OBtJt5Lj8Pc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "443662973429-uke1nso39gno53vhbuaifiqdtr9sqqgu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "443662973429-omiucflorjbdankbrgvnn9uihni683ln.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bauwa"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

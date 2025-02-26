@@ -1,0 +1,2 @@
+/Users/ash_jay/AndroidStudioProjects/Bauwa/android/app/.cxx/Debug/1u5h5a04/x86_64/CMakeFiles/edit_cache.dir
+/Users/ash_jay/AndroidStudioProjects/Bauwa/android/app/.cxx/Debug/1u5h5a04/x86_64/CMakeFiles/rebuild_cache.dir
