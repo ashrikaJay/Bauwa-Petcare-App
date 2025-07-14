@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bauwa/view/pets/add_pets_page.dart';
-import 'package:bauwa/view/pets/image-defaults.dart';
+import 'package:bauwa/view/pets/image_defaults.dart';
 
 class PetsPage extends StatefulWidget {
-  const PetsPage({super.key});
+  final VoidCallback? onOpenDrawer;
+  const PetsPage({super.key, required this.onOpenDrawer});
 
   @override
   State<PetsPage> createState() => _PetsPageState();
@@ -16,7 +17,15 @@ class _PetsPageState extends State<PetsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("My Pets")),
+      appBar: AppBar(
+        title: const Text("My Pets"),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: widget.onOpenDrawer ?? () {},
+        ),
+      ),
+
+      backgroundColor: const Color(0xFFD9D1C7),
       body: StreamBuilder(
         stream: petsCollection.snapshots(),
         builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
