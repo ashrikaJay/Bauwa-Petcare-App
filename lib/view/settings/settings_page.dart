@@ -135,10 +135,11 @@ class _SettingsPageState extends State<SettingsPage> {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SwitchListTile(
-        secondary: Icon(icon, color: Colors.brown),
+        secondary: Icon(icon, color: Color(0xFF8C5E35)),
         title: Text(title),
         value: value,
         onChanged: onChanged,
+        activeColor: Color(0xFF169FAD),
       ),
     );
   }
