@@ -1,72 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../services/auth_service.dart';
-import 'package:bauwa/nav/home_screen.dart'; // Redirect after login
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'signup_screen.dart';
+import 'package:bauwa/core/widgets/home_nav.dart';
 
-class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  //_SignUpScreenState createState() => _SignUpScreenState();
-  State<SignUpScreen>  createState() => _SignUpScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  final nicknameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
 
-  bool _isGoogleSignIn = false;
   bool _isLoading = false;
-  String? _errorMessage;
 
-  /// Create an account with email & password
-  void _signUp() async {
+  /// Log in with Email & Password
+  void _login() async {
     setState(() => _isLoading = true);
 
-    String nickname = nicknameController.text.trim();
-    String email = emailController.text.trim();
-    String password = passwordController.text.trim();
-    String confirmPassword = confirmPasswordController.text.trim();
-
-    if (nickname.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-      _showError("All fields are required!");
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    if (password != confirmPassword) {
-      _showError("Passwords do not match!");
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
-      User? user = userCredential.user;
-      if (user != null) {
-        await _saveUserData(user.uid, nickname, email, null);
+      if (userCredential.user != null) {
+        debugPrint("Login successful");
         _navigateToHome();
       }
     } catch (e) {
-      _showError(e.toString());
+      _showError("Login failed: ${e.toString()}");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  /// Sign in with Google & prompt nickname input
+  /// Sign in with Google
   void _signInWithGoogle() async {
     setState(() => _isLoading = true);
 
@@ -90,33 +67,61 @@ class _SignUpScreenState extends State<SignUpScreen> {
         // Check if user exists in Firestore
         DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-        /*if (userDoc.exists) {
-          _navigateToHome(); // User already has an account
-        } else {
-          setState(() => _isGoogleSignIn = true);
-        }*/
         if (!userDoc.exists || !userDoc.data().toString().contains('nickname')) {
-          // Prompt user to enter a nickname
+          // Prompt for nickname if missing
           String? nickname = await _promptForNickname();
-
           if (nickname != null && nickname.isNotEmpty) {
             await _saveUserData(user.uid, nickname, user.email ?? "", user.photoURL);
-            debugPrint("Nickname saved: $nickname");
           } else {
             _showError("Nickname is required to continue.");
             return;
           }
         }
 
-        debugPrint("User authentication successful. Navigating to HomeScreen...");
+        debugPrint("Google Sign-In successful");
         _navigateToHome();
-
       }
     } catch (e) {
       _showError("Google Sign-In Error: ${e.toString()}");
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Prompt user for a nickname (if missing)
+  Future<String?> _promptForNickname() async {
+    TextEditingController nicknameController = TextEditingController();
+
+    return await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Enter Your Nickname"),
+          content: TextField(
+            controller: nicknameController,
+            decoration: const InputDecoration(hintText: "Enter nickname"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                String nickname = nicknameController.text.trim();
+                if (nickname.isNotEmpty) {
+                  Navigator.of(context).pop(nickname);
+                }
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   /// Save user details to Firestore
@@ -128,58 +133,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
   }
 
-  Future<String?> _promptForNickname() async {
-    TextEditingController nicknameController = TextEditingController();
-
-    return await showDialog<String>(
-      context: context,
-      barrierDismissible: false, // Prevent dismissing without input
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Enter Your Nickname"),
-          content: TextField(
-            controller: nicknameController,
-            decoration: const InputDecoration(hintText: "Enter nickname"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close without saving
-              },
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                String nickname = nicknameController.text.trim();
-                if (nickname.isNotEmpty) {
-                  Navigator.of(context).pop(nickname); // Return nickname
-                }
-              },
-              child: const Text("Save"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  /// Navigate to Home Screen
-  void _navigateToHome() {
-    debugPrint("Navigating to HomeScreen...");
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
-  }
-
-  /*void _showError(String message) {
-    setState(() {
-      _errorMessage = message;
-      _isLoading = false;
-    });
-  }*/
-  /// Show error messages using `ScaffoldMessenger`
+  /// Show error messages
   void _showError(String message) {
     setState(() => _isLoading = false);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -190,10 +144,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  /// Navigate to Home Screen
+  void _navigateToHome() {
+    debugPrint("Navigating to HomeScreen...");
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
+      //appBar: AppBar(title: const Text("Login")),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -201,22 +164,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset('assets/together.png', width: 200, height: 200),
-            _buildTextField(nicknameController, "Nickname"),
+            const SizedBox(height: 120),
+            Image.asset('assets/icons/login-greeting.png', width: 200, height: 200),
             const SizedBox(height: 10),
-            _buildTextField(emailController, "Email",
-                keyboardType: TextInputType.emailAddress),
-            const SizedBox(height: 10),
-            _buildTextField(passwordController, "Password", obscureText: true),
-            const SizedBox(height: 10),
-            _buildTextField(confirmPasswordController, "Confirm Password",
-                obscureText: true),
+            _buildTextField(emailController, "Email", keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 20),
+            _buildTextField(passwordController, "Password", obscureText: true),
+            const SizedBox(height: 40),
 
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-              onPressed: _signUp,
+              onPressed: _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey[700],
                 minimumSize: const Size(200, 50),
@@ -224,23 +183,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text(
-                  "Sign Up", style: TextStyle(color: Colors.white)),
+              child: const Text("Login", style: TextStyle(color: Colors.white)),
             ),
+
             const SizedBox(height: 20),
 
-            // Circular Google Sign-In Button
+            // Google Sign-In Button
             ElevatedButton(
               onPressed: _signInWithGoogle,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 shape: const CircleBorder(), // Circular button
-                padding: const EdgeInsets.all(12), // Adjust padding for size
-                elevation: 3, // Slight elevation for a modern look
+                padding: const EdgeInsets.all(12),
+                elevation: 3,
               ),
               child: Image.asset(
                 'assets/icons/google-icon.png',
-                height: 40, width: 40, // Adjust size of Google logo
+                height: 40, width: 40,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.account_circle, size: 40, color: Colors.blue);
                 },
@@ -249,23 +208,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
             const SizedBox(height: 20),
 
-
             GestureDetector(
               onTap: () {
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                );
               },
               child: const Text(
-                "Already have an account? Sign In!",
+                "Don't have an account? Sign Up!",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
-
           ],
         ),
-      ),
-      ),
+        ),
+      ),//add the syntax from here
     );
   }
+
   /// Common function for building text fields
   Widget _buildTextField(TextEditingController controller, String label, {bool obscureText = false, TextInputType? keyboardType}) {
     return Padding(
@@ -283,6 +244,4 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-
-  }
-
+}

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:bauwa/pets/addpets.dart';
+import 'package:bauwa/view/pets/add_pets_page.dart';
+import 'package:bauwa/view/pets/image-defaults.dart';
 
 class PetsPage extends StatefulWidget {
   const PetsPage({super.key});
 
   @override
-  _PetsPageState createState() => _PetsPageState();
+  State<PetsPage> createState() => _PetsPageState();
 }
 
 class _PetsPageState extends State<PetsPage> {
@@ -40,6 +41,15 @@ class _PetsPageState extends State<PetsPage> {
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               var pet = snapshot.data!.docs[index];
+              /*String imageUrl = (pet['image'] != null && pet['image'].toString().isNotEmpty)
+                  ? pet['image']
+                  : getDefaultImage(pet['breed']);*/
+
+              String imageUrl = (pet['image'] != null && pet['image'].toString().isNotEmpty)
+                  ? pet['image']
+                  : getDefaultImage(pet['breed'], pet['color']);
+
+
               return GestureDetector(
                 onTap: () {
                   // Navigate to pet details page
@@ -55,7 +65,9 @@ class _PetsPageState extends State<PetsPage> {
                           decoration: BoxDecoration(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                             image: DecorationImage(
-                              image: NetworkImage(pet['image']),
+                              image: imageUrl.startsWith('http')
+                                  ? NetworkImage(imageUrl)  // Load user-uploaded image
+                                  : AssetImage(imageUrl) as ImageProvider,
                               fit: BoxFit.cover,
                             ),
                           ),

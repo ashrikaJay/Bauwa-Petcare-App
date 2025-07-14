@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:bauwa/screens/login_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String nickname;

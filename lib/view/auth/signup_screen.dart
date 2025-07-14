@@ -1,49 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'signup_screen.dart'; // Ensure correct import
-import 'package:bauwa/nav/home_screen.dart'; // Redirect after login
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:bauwa/core/widgets/home_nav.dart'; // Redirect after login
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SignUpScreen>  createState() => _SignUpScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
+  final nicknameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   bool _isLoading = false;
 
-  /// Log in with Email & Password
-  void _login() async {
+  /// Create an account with email & password
+  void _signUp() async {
     setState(() => _isLoading = true);
 
+    String nickname = nicknameController.text.trim();
+    String email = emailController.text.trim();
+    String password = passwordController.text.trim();
+    String confirmPassword = confirmPasswordController.text.trim();
+
+    if (nickname.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      _showError("All fields are required!");
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showError("Passwords do not match!");
+      setState(() => _isLoading = false);
+      return;
+    }
+
     try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      if (userCredential.user != null) {
-        debugPrint("Login successful");
+      User? user = userCredential.user;
+      if (user != null) {
+        await _saveUserData(user.uid, nickname, email, null);
         _navigateToHome();
       }
     } catch (e) {
-      _showError("Login failed: ${e.toString()}");
+      _showError(e.toString());
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  /// Sign in with Google
+  /// Sign in with Google & prompt nickname input
   void _signInWithGoogle() async {
     setState(() => _isLoading = true);
 
@@ -67,19 +86,27 @@ class _LoginScreenState extends State<LoginScreen> {
         // Check if user exists in Firestore
         DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
 
+        /*if (userDoc.exists) {
+          _navigateToHome(); // User already has an account
+        } else {
+          setState(() => _isGoogleSignIn = true);
+        }*/
         if (!userDoc.exists || !userDoc.data().toString().contains('nickname')) {
-          // Prompt for nickname if missing
+          // Prompt user to enter a nickname
           String? nickname = await _promptForNickname();
+
           if (nickname != null && nickname.isNotEmpty) {
             await _saveUserData(user.uid, nickname, user.email ?? "", user.photoURL);
+            debugPrint("Nickname saved: $nickname");
           } else {
             _showError("Nickname is required to continue.");
             return;
           }
         }
 
-        debugPrint("Google Sign-In successful");
+        debugPrint("User authentication successful. Navigating to HomeScreen...");
         _navigateToHome();
+
       }
     } catch (e) {
       _showError("Google Sign-In Error: ${e.toString()}");
@@ -88,7 +115,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// Prompt user for a nickname (if missing)
+  /// Save user details to Firestore
+  Future<void> _saveUserData(String userId, String nickname, String email, String? photoUrl) async {
+    await _firestore.collection('users').doc(userId).set({
+      'nickname': nickname,
+      'email': email,
+      'profilePic': photoUrl,
+    });
+  }
+
   Future<String?> _promptForNickname() async {
     TextEditingController nicknameController = TextEditingController();
 
@@ -124,25 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// Save user details to Firestore
-  Future<void> _saveUserData(String userId, String nickname, String email, String? photoUrl) async {
-    await _firestore.collection('users').doc(userId).set({
-      'nickname': nickname,
-      'email': email,
-      'profilePic': photoUrl,
-    });
-  }
-
-  /// Show error messages
-  void _showError(String message) {
-    setState(() => _isLoading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
 
   /// Navigate to Home Screen
   void _navigateToHome() {
@@ -153,10 +169,27 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  /*void _showError(String message) {
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+    });
+  }*/
+  /// Show error messages using `ScaffoldMessenger`
+  void _showError(String message) {
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
+      appBar: AppBar(title: const Text("Sign Up")),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -164,18 +197,22 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 80),
-            Image.asset('assets/icons/login-greeting.png', width: 200, height: 200),
+            Image.asset('assets/together.png', width: 200, height: 200),
+            _buildTextField(nicknameController, "Nickname"),
             const SizedBox(height: 10),
-            _buildTextField(emailController, "Email", keyboardType: TextInputType.emailAddress),
-            const SizedBox(height: 20),
+            _buildTextField(emailController, "Email",
+                keyboardType: TextInputType.emailAddress),
+            const SizedBox(height: 10),
             _buildTextField(passwordController, "Password", obscureText: true),
-            const SizedBox(height: 40),
+            const SizedBox(height: 10),
+            _buildTextField(confirmPasswordController, "Confirm Password",
+                obscureText: true),
+            const SizedBox(height: 20),
 
             _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-              onPressed: _login,
+              onPressed: _signUp,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey[700],
                 minimumSize: const Size(200, 50),
@@ -183,23 +220,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
-              child: const Text("Login", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                  "Sign Up", style: TextStyle(color: Colors.white)),
             ),
-
             const SizedBox(height: 20),
 
-            // Google Sign-In Button
+            // Circular Google Sign-In Button
             ElevatedButton(
               onPressed: _signInWithGoogle,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 shape: const CircleBorder(), // Circular button
-                padding: const EdgeInsets.all(12),
-                elevation: 3,
+                padding: const EdgeInsets.all(12), // Adjust padding for size
+                elevation: 3, // Slight elevation for a modern look
               ),
               child: Image.asset(
                 'assets/icons/google-icon.png',
-                height: 40, width: 40,
+                height: 40, width: 40, // Adjust size of Google logo
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.account_circle, size: 40, color: Colors.blue);
                 },
@@ -208,25 +245,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 20),
 
+
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                );
+                Navigator.pop(context);
               },
               child: const Text(
-                "Don't have an account? Sign Up!",
+                "Already have an account? Sign In!",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
+
           ],
         ),
-        ),
-      ),//add the syntax from here
+      ),
+      ),
     );
   }
-
   /// Common function for building text fields
   Widget _buildTextField(TextEditingController controller, String label, {bool obscureText = false, TextInputType? keyboardType}) {
     return Padding(
@@ -244,4 +279,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
+
+  }
+

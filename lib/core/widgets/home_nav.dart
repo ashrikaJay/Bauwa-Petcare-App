@@ -45,7 +45,7 @@ class HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Dashboard"),
           BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pets"),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: "Appointments"),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: "Appointments"),
           BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Reminders"),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Settings"),
         ],

@@ -7,7 +7,7 @@ class AddPetPage extends StatefulWidget {
   const AddPetPage({super.key});
 
   @override
-  _AddPetPageState createState() => _AddPetPageState();
+  State<AddPetPage> createState() => _AddPetPageState();
 }
 
 class _AddPetPageState extends State<AddPetPage> {
@@ -22,7 +22,34 @@ class _AddPetPageState extends State<AddPetPage> {
 
   String _gender = 'Male';
   String _petType = 'Dog';
+  String _selectedColor = 'Black';
   DateTime? _selectedBirthday;
+
+  String toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .split(' ')
+        .map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}' : '')
+        .join(' ');
+  }
+
+  Widget _buildColorRadioButton(String color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Radio<String>(
+          value: color,
+          groupValue: _selectedColor,
+          onChanged: (value) {
+            setState(() {
+              _selectedColor = value!;
+            });
+          },
+        ),
+        Text(color),
+      ],
+    );
+  }
 
   Future<void> _selectBirthday(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -64,9 +91,10 @@ class _AddPetPageState extends State<AddPetPage> {
         'name': _nameController.text.trim(),
         'breed': _breedController.text.trim(),
         'age': int.parse(_ageController.text.trim()),
-        'birthday': _selectedBirthday != null ? _selectedBirthday!.toIso8601String() : null,
+        'birthday': _selectedBirthday?.toIso8601String(),
         'gender': _gender,
         'petType': _petType,
+        'color': _selectedColor,
         'image': _imageController.text.trim(),
         'notes': _notesController.text.trim(),
       });
@@ -82,7 +110,7 @@ class _AddPetPageState extends State<AddPetPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add New Pet")),
+      appBar: AppBar(title: const Text("Add Pet")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -137,6 +165,12 @@ class _AddPetPageState extends State<AddPetPage> {
                       ),
                     ),
                     validator: (value) => value!.isEmpty ? "Please enter breed" : null,
+                    onChanged: (value) {
+                      _breedController.value = _breedController.value.copyWith(
+                        text: toTitleCase(value),
+                        selection: TextSelection.collapsed(offset: toTitleCase(value).length),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -180,6 +214,33 @@ class _AddPetPageState extends State<AddPetPage> {
                 const SizedBox(height: 15),
 
                 Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 35), // Adjust padding
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      "Pet Color",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Wrap( //instead of Row
+                    //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    spacing: 10,
+                    runSpacing: 12,
+                    children: [
+                      _buildColorRadioButton("Black"),
+                      _buildColorRadioButton("Brown"),
+                      _buildColorRadioButton("Light"),
+                      _buildColorRadioButton("Other"),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 15),
+
+
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: DropdownButtonFormField<String>(
                     value: _gender,
@@ -196,9 +257,22 @@ class _AddPetPageState extends State<AddPetPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 85),
+                //const SizedBox(height: 85),
+                const SizedBox(height: 15),
 
-                // Display Selected Image (if any)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30), // Adjust padding for alignment
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      "Your Pet's Profile Image",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 5),
+
+                // Display Selected Image
                 if (_selectedImage != null)
                   GestureDetector(
                     onTap: () => _pickImage(ImageSource.gallery), // Change image when tapped
@@ -220,7 +294,7 @@ class _AddPetPageState extends State<AddPetPage> {
                       icon: const Icon(Icons.camera_alt),
                       label: const Text("Take Photo"),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => _pickImage(ImageSource.gallery),
                       icon: const Icon(Icons.image),
@@ -229,32 +303,30 @@ class _AddPetPageState extends State<AddPetPage> {
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 15),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    height: 100, // Large area for notes
-                    child: TextFormField(
-                      controller: _notesController,
-                      keyboardType: TextInputType.multiline,
-                      maxLines: null, // Expands automatically
-                      decoration: InputDecoration(
-                        labelText: "Notes (Optional)",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        alignLabelWithHint: true, // Aligns label to the top
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0), // Reduce vertical padding
+                  child: TextFormField(
+                    controller: _notesController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null, // Expands automatically
+                    decoration: InputDecoration(
+                      labelText: "Notes (Optional)",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
                       ),
+                      alignLabelWithHint: true, // Aligns label to the top
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+
                 Align(
                   alignment: Alignment.center, // Centers the button
                   child: SizedBox(
-                    width: 200, // Shorter button width
+                    width: 140, // Shorter button width
                     child: ElevatedButton(
                       onPressed: _savePet,
                       style: ElevatedButton.styleFrom(
