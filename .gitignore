@@ -83,5 +83,7 @@ app.*.map.json
 /android/app/release
 
 ios/Runner/GoogleService-Info.plist
+firebase.json
+release-key.jks
 lib/backup_files_and_testing/login_screen_test.dart
 
