@@ -1,5 +1,5 @@
 # Flutter/Dart/Pub related
-/build/
+build/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
@@ -16,6 +16,7 @@
 firebase_options.dart
 ### Android Firebase config (very sensitive)
 google-services.json
+ios/Runner/GoogleService-Info.plist
 ##### Assuming this is where you keep private keys or assets
 ### (API keys: api_keys.json, ***REMOVED***_token.txt)
 ### (Confidential config files: config_dev.json, firebase_***REMOVED***.json)
@@ -46,6 +47,7 @@ api_keys.json
 .history
 ### macOS directory metadata
 .DS_Store
+Thumbs.db
 
 #Tool-specific or old SCM data
 .atom/
@@ -82,8 +84,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-ios/Runner/GoogleService-Info.plist
 firebase.json
 release-key.jks
-lib/backup_files_and_testing/login_screen_test.dart
+***REMOVED***
+
+lib/backup_files_and_testing/
+
 
