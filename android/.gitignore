@@ -27,7 +27,7 @@ android/.gradle/
 android/app/*.iml
 android/key.properties
 android/local.properties
-***REMOVED***
+android/app/google-services.json
 android/app/src/profile/
 
 # VS Code & JetBrains IDEs

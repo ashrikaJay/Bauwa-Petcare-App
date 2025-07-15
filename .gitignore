@@ -18,13 +18,13 @@ firebase_options.dart
 google-services.json
 ios/Runner/GoogleService-Info.plist
 ##### Assuming this is where you keep private keys or assets
-### (API keys: api_keys.json, ***REMOVED***_token.txt)
-### (Confidential config files: config_dev.json, firebase_***REMOVED***.json)
+### (API keys: api_keys.json, secret_token.txt)
+### (Confidential config files: config_dev.json, firebase_secret.json)
 ### (Non-public assets: User data backups, private images, PDF reports, etc)
 ### (Local test data: mock_user_data.json, test logs)
 assets/private/
 api_keys.json
-***REMOVED***_token.txt
+secret_token.txt
 
 # Environment
 ### Main environment variables file
@@ -86,8 +86,10 @@ app.*.map.json
 
 firebase.json
 release-key.jks
-***REMOVED***
+gitleaks-report.json
+gitleaks-history-report.json
 
 lib/backup_files_and_testing/
-
-
+clean-final.json
+secrets-to-delete.txt
+bfg-1.15.0.jar
